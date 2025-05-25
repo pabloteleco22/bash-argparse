@@ -7,44 +7,54 @@ declare -A long_args
 declare -A param_description
 declare description
 
+do_if_bad_arg="do_if_bad_arg"
+default_help_help="Show this help"
+required_param_error='Error: parameter of %param% required'
 
-help() {
+print_help() {
     local flag_offset=20
 
     echo $description
 
-    keys=$(echo "${!short_flags[@]} ${!long_flags[@]}" | sed "s/ /\n/g" | sort -u)
+    local keys=$(echo "${!short_flags[@]} ${!long_flags[@]}" | sed "s/ /\n/g" | sort -u)
 
     for k in $keys; do
         printf "    %-${flag_offset}s    %s\n" "$(echo ${short_flags[$k]} ${long_flags[$k]} | sed 's/ /, /g')" "${param_description[$k]}"
     done
 
-    keys=$(echo "${!short_args[@]} ${!long_args[@]}" | sed "s/ /\n/g" | sort -u)
+    local keys=$(echo "${!short_args[@]} ${!long_args[@]}" | sed "s/ /\n/g" | sort -u)
 
     for k in $keys; do
         printf "    %-${flag_offset}s    %s\n" "$(echo ${short_args[$k]} ${long_args[$k]} | sed "s/ / ${k^^}, /g;s/$/ ${k^^}/g")" "${param_description[$k]}"
     done
+}
 
+help() {
+    print_help
     exit
 }
 
 process_args() {
-    keys="help $(echo ${!short_flags[@]} ${!long_flags[@]} ${!short_args[@]} ${!long_args[@]} | sed "s/ /\n/g" | sort -u)"
+    local keys="help $(echo ${!short_flags[@]} ${!long_flags[@]} ${!short_args[@]} ${!long_args[@]} | sed "s/ /\n/g" | sort -u)"
 
-    short_flags+=( [help]="-h" )
-    long_flags+=( [help]="--help" )
-    param_description+=( ["help"]="Muestra esta ayuda" )
+    if [[ -z "${short_flags[help]}" ]] && [[ -z "${long_flags[help]}" ]]; then
+        short_flags[help]="-h"
+        long_flags[help]="--help"
+    fi
+
+    test -z ${param_description[help]} && param_description[help]=$default_help_help
 
     local processed=1
 
     while [[ -n "$1" ]]; do
         processed=1
+        local param="$1"
 
         for f in $keys; do
             if [[ "$1" = ${short_flags[$f]} ]] || [[ "$1" = ${long_flags[$f]} ]]; then
                 shift;
 
-                $f
+                declare -F $f &> /dev/null && $f || declare -g "$f"=0
 
                 processed=0
                 break
@@ -52,11 +62,11 @@ process_args() {
                 shift;
 
                 if [[ -z "$1" ]]; then
-                    echo "Error: parameter of ${short_args[$f]} required"
+                    echo $required_param_error | sed "s/%param%/$param/g"
                     exit;
                 fi
 
-                $f $1
+                declare -F $f &> /dev/null && $f "$1" || declare -g "$f"="$1"
 
                 shift
                 processed=0
@@ -64,6 +74,7 @@ process_args() {
             fi
         done
         if [[ $processed -ne 0 ]]; then
+            declare -F $do_if_bad_arg &> /dev/null && $do_if_bad_arg "$param"
             shift
         fi
     done
