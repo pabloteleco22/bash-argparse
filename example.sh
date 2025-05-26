@@ -30,7 +30,7 @@ param_description[with_param]="Help of with_param"
 
 ## Functions of some arguments
 flag() {
-    echo flag $1
+    echo flag
 }
 
 solo() {
@@ -61,7 +61,7 @@ help() {
 }
 
 ## Processing arguments
-process_args $@
+process_args "$@"
 
 ## Show the value of arguments with no function declared
 echo ------------------------
