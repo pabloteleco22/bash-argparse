@@ -37,10 +37,6 @@ solo() {
     echo solo
 }
 
-yes() {
-    echo yes
-}
-
 with_param() {
     echo with param $1
 }
@@ -69,5 +65,5 @@ process_args $@
 
 ## Show the value of arguments with no function declared
 echo ------------------------
-echo otro: $otro
-echo nuevo: $nuevo
+echo yes: $yes
+echo new: $new
