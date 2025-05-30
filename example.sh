@@ -31,8 +31,11 @@ param_description[file1]="Help of file1"
 param_description[file2]="Help of file2"
 #param_description[help]="Show this alternate help"
 
+required_parameters=("file1" "yes")
+
 ## Error messages
 #required_param_error="Custom error message because param %param% is required"
+#required_param_value_error="Custom error message because the value of param %param% is required"
 
 ## Functions of some arguments
 flag() {

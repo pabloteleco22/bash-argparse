@@ -5,12 +5,14 @@ declare -A long_flags
 declare -A short_args
 declare -A long_args
 positional_args=()
+required_parameters=()
 declare -A param_description
 declare description
 
 do_if_bad_arg="do_if_bad_arg"
 default_help_help="Show this help"
-required_param_error='Error: parameter of %param% required'
+required_param_value_error='Error: value of %param% required'
+required_param_error='Error: parameter %param% required'
 
 print_help() {
     local flag_offset=20
@@ -34,9 +36,13 @@ print_help() {
     done
 }
 
+_exit() {
+    exit $1
+}
+
 help() {
     print_help
-    exit
+    _exit
 }
 
 process_args() {
@@ -67,8 +73,8 @@ process_args() {
                 shift;
 
                 if [[ -z "$1" ]]; then
-                    echo $required_param_error | sed "s/%param%/$param/g"
-                    exit;
+                    echo $required_param_value_error | sed "s/%param%/$param/g"
+                    _exit;
                 fi
 
                 declare -F $f &> /dev/null && $f "$1" || declare -g "$f"="$1"
@@ -86,6 +92,13 @@ process_args() {
                 declare -F $do_if_bad_arg &> /dev/null && $do_if_bad_arg "$param"
             fi
             shift
+        fi
+    done
+
+    for req in "${required_parameters[@]}"; do
+        if [[ -z "${!req}" ]]; then
+            echo $required_param_error | sed "s/%param%/$req/g"
+            _exit 1
         fi
     done
 }
