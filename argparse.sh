@@ -4,6 +4,7 @@ declare -A short_flags
 declare -A long_flags
 declare -A short_args
 declare -A long_args
+positional_args=()
 declare -A param_description
 declare description
 
@@ -15,6 +16,10 @@ print_help() {
     local flag_offset=20
 
     echo $description
+
+    for k in ${positional_args[@]}; do
+        printf "    %-${flag_offset}s    %s\n" "${k^^} " "${param_description[$k]}"
+    done
 
     local keys=$(echo "${!short_flags[@]} ${!long_flags[@]}" | sed "s/ /\n/g" | sort -u)
 
@@ -47,16 +52,16 @@ process_args() {
     local processed=1
 
     while [[ -n "$1" ]]; do
-        processed=1
+        processed=false
         local param="$1"
 
         for f in $keys; do
             if [[ "$1" = ${short_flags[$f]} ]] || [[ "$1" = ${long_flags[$f]} ]]; then
                 shift;
 
-                declare -F $f &> /dev/null && $f || declare -g "$f"=0
+                declare -F $f &> /dev/null && $f || declare -g "$f"=true
 
-                processed=0
+                processed=true
                 break
             elif [[ "$1" = ${short_args[$f]} ]] || [[ "$1" = ${long_args[$f]} ]]; then
                 shift;
@@ -69,12 +74,17 @@ process_args() {
                 declare -F $f &> /dev/null && $f "$1" || declare -g "$f"="$1"
 
                 shift
-                processed=0
+                processed=true
                 break
             fi
         done
-        if [[ $processed -ne 0 ]]; then
-            declare -F $do_if_bad_arg &> /dev/null && $do_if_bad_arg "$param"
+        if ! $processed ; then
+            if [[ ${#positional_args[@]} -gt 0 ]]; then
+                declare -g "${positional_args[0]}"="$1"
+                positional_args=("${positional_args[@]:1}")
+            else
+                declare -F $do_if_bad_arg &> /dev/null && $do_if_bad_arg "$param"
+            fi
             shift
         fi
     done

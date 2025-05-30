@@ -16,6 +16,10 @@ short_args[with_param]="-c"
 long_args[new]="--new"
 long_args[other]="--other"
 
+## Positional arguments
+positional_args+=("file1")
+positional_args+=("file2")
+
 ## Descriptions
 description="Script description."
 param_description[flag]="Help of flag"
@@ -23,6 +27,8 @@ param_description[solo]="Help of solo"
 param_description[yes]="Help of yes"
 param_description[new]="Help of new"
 param_description[with_param]="Help of with_param"
+param_description[file1]="Help of file1"
+param_description[file2]="Help of file2"
 #param_description[help]="Show this alternate help"
 
 ## Error messages
@@ -67,3 +73,6 @@ process_args "$@"
 echo ------------------------
 echo yes: $yes
 echo new: $new
+
+echo file1: $file1
+echo file2: $file2
