@@ -17,6 +17,29 @@ required_param_error='Error: parameter %param% required'
 print_help() {
     local flag_offset=20
 
+    ## Use
+    echo -n USE: $0 
+
+    local keys=$(echo "${!short_flags[@]} ${!long_flags[@]}" | sed "s/ /\n/g" | sort -u)
+
+    for k in ${positional_args[@]}; do
+        echo -n " ${k^^}"
+    done
+
+    local keys=$(echo "${!short_flags[@]} ${!long_flags[@]}" | sed "s/ /\n/g" | sort -u)
+
+    for k in $keys; do
+        echo -n "${short_flags[$k]} ${long_flags[$k]}" | sed -E "s/^ ?/[/g;s/ ?\$/]/g;s/ /|/g;s/^/ /"
+    done
+
+    local keys=$(echo "${!short_args[@]} ${!long_args[@]}" | sed "s/ /\n/g" | sort -u)
+
+    for k in $keys; do
+        echo -n "${short_args[$k]} ${long_args[$k]}" | sed -E "s/^ ?/[/g;s/ ?\$//g;s/ /|/g;s/^/ /"; echo -n " ${k^^}]"
+    done
+
+    ## Description
+    echo -e "\n"
     echo $description
 
     for k in ${positional_args[@]}; do
